@@ -1,0 +1,1282 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2F4F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1218" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Charge commune">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<title>Charge commune</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Mise en page : application mobile en colonne unique (560 px max), en-tête collant, barre d'onglets fixée en bas.
+   Couleurs : encre bleutée + les deux couleurs de disques olympiques (bleu 20 kg, rouge 25 kg), une par utilisateur. */
+:root {
+  --bg: #F2F4F8;
+  --surface: #FFFFFF;
+  --surface-2: #E8ECF2;
+  --ink: #141922;
+  --muted: #566074;
+  --line: #D8DEE8;
+  --a: #2352DB;
+  --b: #D4372F;
+  --good: #17794A;
+  --on-solid: #FFFFFF;
+  --on-good: #FFFFFF;
+  --font-display: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+  --font-body: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1218; --surface: #161B24; --surface-2: #1F2632; --ink: #E9EDF4; --muted: #9AA5B8; --line: #283040;
+    --a: #7099FF; --b: #FF7B70; --good: #4FC58B; --on-solid: #0B0F16; --on-good: #07120C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1218; --surface: #161B24; --surface-2: #1F2632; --ink: #E9EDF4; --muted: #9AA5B8; --line: #283040;
+  --a: #7099FF; --b: #FF7B70; --good: #4FC58B; --on-solid: #0B0F16; --on-good: #07120C;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.4 var(--font-body);
+  --me: var(--a);
+  -webkit-tap-highlight-color: transparent;
+}
+body[data-me="b"] { --me: var(--b); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--me); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+
+.wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+
+/* En-tête */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 10px; }
+.brand { font: 700 28px/1 var(--font-display); letter-spacing: .02em; text-transform: uppercase; }
+.proto { margin-top: 3px; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+
+.seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--surface-2); border-radius: 999px; max-width: 100%; }
+.seg button {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 13px;
+  border: 0; border-radius: 999px; background: transparent; color: var(--muted);
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--muted)); flex: none; }
+
+main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+.label {
+  margin: 24px 0 10px; font-size: 12px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted);
+}
+.view > .label:first-child { margin-top: 4px; }
+.note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+.empty { padding: 36px 8px; text-align: center; color: var(--muted); }
+
+/* Séance */
+.dayline { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.day { font: 700 36px/1.05 var(--font-display); letter-spacing: .01em; text-transform: uppercase; }
+.dayline span { font-size: 14px; color: var(--muted); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  font-size: 15px; font-weight: 600;
+}
+.chip[aria-pressed="true"] { background: var(--me); border-color: var(--me); color: var(--on-solid); }
+.chip .count {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; font-size: 12px; line-height: 20px; text-align: center;
+  background: var(--surface-2); color: var(--ink);
+}
+.chip[aria-pressed="true"] .count { background: var(--on-solid); color: var(--me); }
+
+.add-ex { display: flex; gap: 8px; margin-top: 10px; }
+.add-ex input {
+  flex: 1; min-width: 0; height: 44px; padding: 0 12px; border: 1px dashed var(--line); border-radius: 12px;
+  background: transparent; font-size: 16px;
+}
+.add-ex input::placeholder { color: var(--muted); }
+.add-ex button {
+  height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  font-weight: 600; font-size: 15px;
+}
+
+.last { margin: 18px 0 10px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.last strong { color: var(--ink); font-weight: 600; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+.field + .field { margin-top: 14px; }
+.field-label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.stepper { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; align-items: center; }
+.step-btn {
+  height: 56px; border: 0; border-radius: 14px; background: var(--surface-2);
+  font: 600 28px/1 var(--font-display);
+}
+.step-btn:active, .btn:active, .chip:active { transform: scale(.97); }
+.num {
+  width: 100%; min-width: 0; padding: 0; border: 0; background: transparent; color: var(--ink);
+  text-align: center; font: 700 54px/1 var(--font-display); font-variant-numeric: tabular-nums;
+}
+.unit { font: 500 16px var(--font-body); color: var(--muted); }
+.bw-toggle {
+  display: flex; align-items: center; gap: 12px; min-height: 44px; margin-bottom: 14px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.bw-toggle input, .add-bw input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--me); }
+.bw-toggle span { font-weight: 600; }
+.bw-toggle small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+.add-bw { display: flex; align-items: center; gap: 10px; min-height: 40px; margin-top: 4px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.pill {
+  display: inline-block; padding: 3px 7px; border-radius: 6px; background: var(--surface-2); color: var(--muted);
+  font: 700 11px/1.3 var(--font-body); letter-spacing: .08em; text-transform: uppercase; vertical-align: middle;
+}
+.push { margin-top: 22px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+.push p { font-size: 14px; color: var(--muted); }
+.push .sum { margin-bottom: 4px; font: 700 24px/1.1 var(--font-display); letter-spacing: .01em; text-transform: uppercase; color: var(--ink); }
+.push .btn { margin-top: 14px; }
+.push .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.push .actions .btn { margin-top: 0; height: 52px; font-size: 19px; }
+.btn.ghost { background: var(--surface-2); color: var(--ink); }
+.sent { margin-bottom: 4px; font: 700 22px/1.1 var(--font-display); letter-spacing: .01em; text-transform: uppercase; color: var(--good); }
+.btn {
+  display: block; width: 100%; height: 58px; margin-top: 18px; border: 0; border-radius: 14px;
+  background: var(--me); color: var(--on-solid);
+  font: 700 22px/1 var(--font-display); letter-spacing: .05em; text-transform: uppercase;
+}
+
+.group { margin-top: 4px; }
+.group + .group { margin-top: 16px; }
+.group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 6px; }
+.group-head h3 { font: 700 21px/1.2 var(--font-display); letter-spacing: .02em; text-transform: uppercase; }
+.group-head span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.set-row {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 40px; align-items: center; gap: 10px;
+  padding: 6px 0; border-top: 1px solid var(--line); min-height: 52px;
+}
+.set-no { font: 600 17px var(--font-display); color: var(--muted); }
+.set-main { font: 700 24px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.set-main small { margin-left: 6px; font: 500 14px var(--font-body); color: var(--muted); }
+.pr {
+  display: inline-block; padding: 3px 7px; border-radius: 6px; background: var(--good); color: var(--on-good);
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+}
+.del { width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: 22px; line-height: 1; }
+
+/* Historique */
+.weeks { display: grid; grid-template-columns: 1fr 1fr; }
+.weeks > div { padding: 0 14px; }
+.weeks > div:first-child { padding-left: 0; }
+.weeks > div + div { border-left: 1px solid var(--line); }
+.weeks .k { font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.weeks .v { margin-top: 6px; font: 700 32px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.weeks .v small { font: 500 14px var(--font-body); color: var(--muted); margin-left: 4px; }
+.weeks .s { margin-top: 4px; font-size: 14px; color: var(--muted); }
+
+.sess { border-top: 1px solid var(--line); }
+.sess:last-of-type { border-bottom: 1px solid var(--line); }
+.sess summary {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center;
+  padding: 14px 0; cursor: pointer; list-style: none;
+}
+.sess summary::-webkit-details-marker { display: none; }
+.sess .d { font: 700 23px/1.1 var(--font-display); letter-spacing: .01em; text-transform: uppercase; }
+.sess .m { grid-column: 1; font-size: 14px; color: var(--muted); }
+.sess .t { grid-column: 2; grid-row: 1 / span 2; text-align: right; font: 700 26px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sess .t small { font: 500 13px var(--font-body); color: var(--muted); margin-left: 3px; }
+.sess .body { padding: 0 0 14px; }
+.exline { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 7px 0; font-size: 15px; }
+.exline .n { font-weight: 600; flex: none; max-width: 48%; }
+.exline .s { min-width: 0; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.reset { margin-top: 28px; padding: 10px 0; border: 0; background: transparent; color: var(--muted); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Progrès et comparaison */
+.filters { display: grid; gap: 10px; margin-bottom: 18px; }
+.filters select {
+  width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface); font-size: 16px; font-weight: 600;
+}
+.segrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stat { padding: 0 12px; min-width: 0; }
+.stat:first-child { padding-left: 0; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat .v { font: 700 31px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.stat .v small { margin-left: 3px; font: 500 13px var(--font-body); color: var(--muted); }
+.stat .k { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.stat .g { color: var(--good); }
+
+.chart svg { display: block; max-width: 100%; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.chart text { font: 500 11px var(--font-body); fill: var(--muted); }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .guide { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.readout { display: grid; gap: 6px; margin-top: 10px; }
+.ro { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; }
+.ro .dot { align-self: center; }
+.ro .rn { font-weight: 600; }
+.ro .rd { color: var(--muted); font-size: 14px; }
+.ro .rv { margin-left: auto; font: 700 26px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.ro .rv small { margin-left: 3px; font: 500 13px var(--font-body); color: var(--muted); }
+
+.metric { padding: 14px 0 16px; border-top: 1px solid var(--line); }
+.metric:last-of-type { border-bottom: 1px solid var(--line); }
+.metric-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.metric-head h3 { font-size: 15px; font-weight: 600; }
+.lead {
+  padding: 3px 9px; border-radius: 999px; background: var(--c, var(--surface-2)); color: var(--on-solid);
+  font-size: 12px; font-weight: 700;
+}
+.lead.eq { background: var(--surface-2); color: var(--muted); }
+.bar-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 9px; }
+.who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--muted); }
+.track { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+.fill { display: block; height: 100%; border-radius: 5px; background: var(--c); }
+.val { min-width: 76px; text-align: right; font: 700 21px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.val small { margin-left: 3px; font: 500 12px var(--font-body); color: var(--muted); }
+
+/* Barre d'onglets */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabs .wrap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding-block: 6px; }
+.tab {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 12px;
+  color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 600; letter-spacing: .02em;
+}
+.tab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tab[aria-current="page"] { color: var(--me); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); z-index: 20;
+  transform: translateX(-50%); width: max-content; max-width: calc(100% - 32px);
+  padding: 11px 16px; border-radius: 12px; background: var(--ink); color: var(--bg);
+  font-size: 15px; font-weight: 600; text-align: center;
+}
+.toast.good { background: var(--good); color: var(--on-good); }
+
+.me {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px;
+  border-radius: 999px; background: var(--surface-2); font-size: 14px; font-weight: 600;
+}
+.me .off { font-size: 12px; font-weight: 500; color: var(--muted); }
+.txt {
+  width: 100%; height: 52px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--bg); font-size: 16px;
+}
+.err { margin-top: 12px; font-size: 14px; color: var(--b); }
+.links { display: flex; flex-wrap: wrap; gap: 24px; }
+.stage .note { margin: 6px 0 18px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 380px) {
+  .num { font-size: 46px; }
+  .seg button { padding: 0 10px; }
+  .brand { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div>
+      <div class="brand">Charge commune</div>
+      <div class="proto">Séances partagées</div>
+    </div>
+    <div class="me" id="who" hidden></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="stage-auth" class="stage" hidden>
+    <h1 class="day">Connexion</h1>
+    <p class="note">Utilise l’e-mail et le mot de passe de ton compte.</p>
+    <form class="card" id="login" autocomplete="on">
+      <div class="field">
+        <label class="field-label" for="email">E-mail</label>
+        <input class="txt" id="email" name="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" autocorrect="off" required>
+      </div>
+      <div class="field">
+        <label class="field-label" for="password">Mot de passe</label>
+        <input class="txt" id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <p class="err" id="login-err" role="alert" hidden></p>
+      <button type="submit" class="btn" id="login-btn">Se connecter</button>
+    </form>
+  </section>
+  <section id="stage-load" class="stage" hidden>
+    <div class="empty" id="load-msg">Chargement…</div>
+    <button type="button" class="btn ghost" id="retry" hidden>Réessayer</button>
+  </section>
+
+  <div id="filters" class="filters" hidden>
+    <select id="f-ex" aria-label="Exercice"></select>
+    <div class="segrow">
+      <div class="seg" id="f-metric" role="group" aria-label="Mesure">
+        <button type="button" data-metric="e1rm">1RM est.</button>
+        <button type="button" data-metric="maxW">Charge max</button>
+        <button type="button" data-metric="vol">Tonnage</button>
+      </div>
+      <div class="seg" id="f-period" role="group" aria-label="Période">
+        <button type="button" data-period="4">4 sem.</button>
+        <button type="button" data-period="8">8 sem.</button>
+        <button type="button" data-period="0">Tout</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="v-seance" class="view">
+    <div class="dayline"><h1 class="day" id="day"></h1><span>Séance du jour</span></div>
+    <div class="label">Exercice</div>
+    <div class="chips" id="chips"></div>
+    <form class="add-ex" id="add-ex" autocomplete="off">
+      <input id="new-ex" type="text" placeholder="Nouvel exercice" maxlength="40" aria-label="Nom du nouvel exercice">
+      <button type="submit">Ajouter</button>
+    </form>
+    <label class="add-bw"><input type="checkbox" id="new-bw"> Nouvel exercice au poids du corps</label>
+    <p class="last" id="last"></p>
+    <form class="card" id="entry" autocomplete="off">
+      <label class="bw-toggle">
+        <input type="checkbox" id="bw">
+        <span>Exercice au poids du corps<small>Le poids saisi devient un lest ajouté (0 = sans lest).</small></span>
+      </label>
+      <div class="field">
+        <label class="field-label" for="in-w" id="lbl-w">Poids <span class="unit">(kg)</span></label>
+        <div class="stepper">
+          <button type="button" class="step-btn" data-w="-2.5" aria-label="Moins 2,5 kilos">−</button>
+          <input class="num" id="in-w" type="text" inputmode="decimal" enterkeyhint="done">
+          <button type="button" class="step-btn" data-w="2.5" aria-label="Plus 2,5 kilos">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="in-r">Répétitions</label>
+        <div class="stepper">
+          <button type="button" class="step-btn" data-r="-1" aria-label="Moins une répétition">−</button>
+          <input class="num" id="in-r" type="text" inputmode="numeric" enterkeyhint="done">
+          <button type="button" class="step-btn" data-r="1" aria-label="Plus une répétition">+</button>
+        </div>
+      </div>
+      <button type="submit" class="btn" id="submit-set">Valider la série</button>
+    </form>
+    <div class="label">Aujourd’hui</div>
+    <div id="today"></div>
+    <div id="push"></div>
+  </section>
+
+  <section id="v-historique" class="view" hidden>
+    <div class="weeks" id="weeks"></div>
+    <div class="label">Séances</div>
+    <div id="sessions"></div>
+    <div class="links">
+      <button type="button" class="reset" id="refresh">Actualiser</button>
+      <button type="button" class="reset" id="logout">Se déconnecter</button>
+    </div>
+  </section>
+
+  <section id="v-progres" class="view" hidden>
+    <div class="stats" id="p-stats"></div>
+    <div class="label" id="p-label"></div>
+    <div class="chart" id="p-chart"></div>
+    <div class="readout" id="p-readout"></div>
+    <p class="note">1RM estimé : formule d’Epley, poids × (1 + répétitions ÷ 30). Tonnage : somme poids × répétitions de la séance.</p>
+  </section>
+
+  <section id="v-comparer" class="view" hidden>
+    <div class="label" id="c-label"></div>
+    <div class="chart" id="c-chart"></div>
+    <div class="readout" id="c-readout"></div>
+    <div class="label">Face à face</div>
+    <div id="c-metrics"></div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Navigation principale">
+  <div class="wrap">
+    <a class="tab" href="#seance" data-view="seance">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12h19M6 7v10M18 7v10M9.5 9v6M14.5 9v6"/></svg>Séance
+    </a>
+    <a class="tab" href="#historique" data-view="historique">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M5 12h14M5 18h9"/></svg>Historique
+    </a>
+    <a class="tab" href="#progres" data-view="progres">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Progrès
+    </a>
+    <a class="tab" href="#comparer" data-view="comparer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20V11M12 20V4M18 20V14M3 20h18"/></svg>Comparer
+    </a>
+  </div>
+</nav>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Constantes et petits outils ---------- */
+  var DAY = 864e5;
+  // Projet Supabase. Ces deux valeurs sont publiques par conception : la protection des données
+  // repose sur les règles de sécurité (RLS) de la base, pas sur le secret de cette clé.
+  var SUPABASE_URL = 'https://oojdtyxodkhvoxeiojnd.supabase.co';
+  var SUPABASE_KEY = 'sb_publishable_crzXY62RLVGmvpou4RdJyA_uP77Bpa9';
+  // « a » = la personne connectée, « b » = l'autre. Les prénoms viennent de la table profiles.
+  var USERS = { a: { name: 'Moi' }, b: { name: '—' } };
+  var VIEWS = ['seance', 'historique', 'progres', 'comparer'];
+  // Pour un exercice au poids du corps : « 1RM » devient le max de répétitions, la charge est le lest ajouté.
+  function metricsFor(ex) {
+    return isBw(ex)
+      ? {
+        e1rm: { label: 'Reps max', key: 'e1rm', unit: 'reps' },
+        maxW: { label: 'Lest max', key: 'maxW', unit: 'kg' },
+        vol: { label: 'Total reps', key: 'vol', unit: 'reps' }
+      }
+      : {
+        e1rm: { label: '1RM estimé', key: 'e1rm', unit: 'kg' },
+        maxW: { label: 'Charge max', key: 'maxW', unit: 'kg' },
+        vol: { label: 'Tonnage', key: 'vol', unit: 'kg' }
+      };
+  }
+
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmt(v, d) {
+    if (d === undefined) d = 1;
+    return Number(v).toLocaleString('fr-FR', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+  }
+  function sgn(v, d) {
+    if (d === undefined) d = 1;
+    var p = Math.pow(10, d), r = Math.round(v * p) / p;
+    if (r === 0) return '0';
+    return (r > 0 ? '+' : '−') + fmt(Math.abs(r), d);
+  }
+  function iso(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function parse(s) { var p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function fmtDay(s) { return parse(s).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }); }
+  function fmtShort(t) { return new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }); }
+  function rel(s) {
+    var n = Math.round((parse(iso(new Date())) - parse(s)) / DAY);
+    if (n <= 0) return 'aujourd’hui';
+    if (n === 1) return 'hier';
+    if (n < 14) return 'il y a ' + n + ' j';
+    return 'il y a ' + Math.round(n / 7) + ' sem.';
+  }
+  function weekStart(s) {
+    var d = parse(s), k = (d.getDay() + 6) % 7;
+    d.setDate(d.getDate() - k);
+    return iso(d);
+  }
+  function uid() { return 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function parseNum(v) { return parseFloat(String(v).replace(',', '.').replace(/[^0-9.\-]/g, '')); }
+  function e1rm(w, r) { return r <= 1 ? w : w * (1 + r / 30); }
+  function tonnage(sets) { return sets.reduce(function (a, s) { return a + s.weight * s.reps; }, 0); }
+  function byExercise(sets) {
+    var m = new Map();
+    sets.forEach(function (s) {
+      if (!m.has(s.exercise)) m.set(s.exercise, []);
+      m.get(s.exercise).push(s);
+    });
+    return m;
+  }
+  function fmtSets(sets) {
+    var groups = [];
+    sets.forEach(function (s) {
+      var g = groups[groups.length - 1];
+      if (g && g.w === s.weight) g.r.push(s.reps); else groups.push({ w: s.weight, r: [s.reps] });
+    });
+    var bw = sets.length && isBw(sets[0].exercise);
+    return groups.map(function (g) {
+      var load = bw ? (g.w ? '+' + fmt(g.w) + ' kg' : 'PC') : fmt(g.w) + ' kg';
+      return load + ' × ' + g.r.join(' · ');
+    }).join('  |  ');
+  }
+
+  /* ---------- Couche de données (Supabase) ----------
+     Les séances envoyées vivent dans Supabase. La séance en cours (brouillon) reste sur le
+     téléphone jusqu'à l'envoi : on peut saisir sans réseau. */
+  var sb = null;
+  var CACHE_KEY = 'cc-cache-v1-', DRAFT_KEY = 'cc-draft-v1-';
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignoré */ } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignoré */ } }
+  function errText(err) { return err && err.message ? err.message : 'réseau indisponible'; }
+
+  var store = {
+    meId: null,
+    profiles: [], exercises: [], server: [], draft: null,
+    data: { exercises: [], sessions: [] },
+
+    // Transforme la réponse du serveur (ou du cache) en données prêtes pour l'interface.
+    ingest: function (raw) {
+      var me = this.meId;
+      this.profiles = raw.profiles || [];
+      this.exercises = (raw.exercises || []).map(function (e) { return { id: e.id, name: e.name, bw: !!e.bw }; });
+      this.server = (raw.sessions || []).map(function (r) {
+        var sets = (r.sets || []).slice().sort(function (p, q) { return p.position - q.position; }).map(function (x) {
+          return { id: x.id, exercise: x.exercise_id, weight: Number(x.weight), reps: x.reps };
+        });
+        return { id: r.id, user: r.user_id === me ? 'a' : 'b', date: r.date, pushed: true, pushedAt: r.pushed_at, sets: sets };
+      });
+      this.rebuild();
+    },
+    // Assemble ce que voit l'interface : séances du serveur + brouillon local (qui remplace la séance du même jour).
+    rebuild: function () {
+      var d = this.draft;
+      var list = this.server.filter(function (s) { return !(d && s.user === 'a' && s.date === d.date); });
+      if (d) list.push({ id: 'draft', user: 'a', date: d.date, pushed: false, sets: d.sets });
+      this.data.exercises = this.exercises;
+      this.data.sessions = list;
+    },
+    refresh: async function () {
+      var out = await Promise.all([
+        sb.from('profiles').select('id,name'),
+        sb.from('exercises').select('id,name,bw').order('name'),
+        sb.from('sessions').select('id,user_id,date,pushed_at,sets(id,exercise_id,position,weight,reps)').order('date')
+      ]);
+      for (var i = 0; i < out.length; i++) if (out[i].error) throw out[i].error;
+      var raw = { profiles: out[0].data, exercises: out[1].data, sessions: out[2].data };
+      lsSet(CACHE_KEY + this.meId, raw);
+      this.ingest(raw);
+    },
+
+    loadDraft: function () {
+      var d = lsGet(DRAFT_KEY + this.meId);
+      this.draft = d && typeof d.date === 'string' && Array.isArray(d.sets) && d.sets.length ? d : null;
+    },
+    saveDraft: function () {
+      if (this.draft) lsSet(DRAFT_KEY + this.meId, this.draft); else lsDel(DRAFT_KEY + this.meId);
+    },
+    // Crée le brouillon du jour (en reprenant la séance déjà envoyée, s'il y en a une).
+    ensureDraft: function () {
+      if (this.draft) return this.draft;
+      var t = iso(new Date());
+      var sv = this.server.find(function (s) { return s.user === 'a' && s.date === t; });
+      this.draft = {
+        date: t,
+        sets: sv ? sv.sets.map(function (x) { return { id: x.id, exercise: x.exercise, weight: x.weight, reps: x.reps }; }) : []
+      };
+      return this.draft;
+    },
+
+    sessionsOf: function (u) { return this.data.sessions.filter(function (s) { return s.user === u; }); },
+    todaySession: function (u) {
+      if (u === 'a' && this.draft) return this.data.sessions.find(function (s) { return s.id === 'draft'; }) || null;
+      var t = iso(new Date());
+      return this.data.sessions.find(function (s) { return s.user === u && s.date === t; }) || null;
+    },
+    addSet: function (u, ex, weight, reps) {
+      var d = this.ensureDraft();
+      var set = { id: uid(), exercise: ex, weight: weight, reps: reps };
+      d.sets.push(set);
+      this.saveDraft(); this.rebuild();
+      return set;
+    },
+    removeSet: function (u, id) {
+      var d = this.ensureDraft();
+      d.sets = d.sets.filter(function (x) { return x.id !== id; });
+      if (!d.sets.length) this.draft = null; // plus rien à envoyer : on revient à la version du serveur
+      this.saveDraft(); this.rebuild();
+    },
+    // Envoi de la séance : une seule requête, enregistrée en bloc par la fonction push_session.
+    pushSession: async function () {
+      var d = this.draft;
+      if (!d || !d.sets.length) return false;
+      var payload = d.sets.map(function (x) { return { exercise_id: x.exercise, weight: x.weight, reps: x.reps }; });
+      var r = await sb.rpc('push_session', { p_date: d.date, p_sets: payload });
+      if (r.error) throw r.error;
+      // Affichage immédiat, puis relecture du serveur.
+      this.server = this.server.filter(function (s) { return !(s.user === 'a' && s.date === d.date); });
+      this.server.push({
+        id: 'local-' + uid(), user: 'a', date: d.date, pushed: true, pushedAt: new Date().toISOString(),
+        sets: d.sets.map(function (x) { return { id: x.id, exercise: x.exercise, weight: x.weight, reps: x.reps }; })
+      });
+      this.draft = null; this.saveDraft(); this.rebuild();
+      try { await this.refresh(); } catch (e) { /* on garde l'affichage local */ }
+      return true;
+    },
+    addExercise: async function (name, bw) {
+      var r = await sb.from('exercises').insert({ name: name, bw: !!bw }).select('id,name,bw').single();
+      if (r.error) throw r.error;
+      var ex = { id: r.data.id, name: r.data.name, bw: !!r.data.bw };
+      this.exercises.push(ex); this.rebuild();
+      return ex;
+    },
+    setBw: async function (id, value) {
+      var e = this.exercises.find(function (x) { return x.id === id; });
+      if (!e) return;
+      var prev = e.bw; e.bw = !!value;
+      var r = await sb.from('exercises').update({ bw: !!value }).eq('id', id);
+      if (r.error) { e.bw = prev; throw r.error; }
+    }
+  };
+
+  function exName(id) {
+    var e = store.data.exercises.find(function (x) { return x.id === id; });
+    return e ? e.name : id;
+  }
+  function isBw(id) {
+    var e = store.data.exercises.find(function (x) { return x.id === id; });
+    return !!(e && e.bw);
+  }
+
+  /* ---------- Calculs ---------- */
+  function exSeries(u, ex) {
+    var out = [];
+    store.sessionsOf(u).forEach(function (s) {
+      if (u !== state.user && !s.pushed) return; // les brouillons de l'autre restent invisibles
+      var sets = s.sets.filter(function (x) { return x.exercise === ex; });
+      if (!sets.length) return;
+      var bw = isBw(ex), maxW = 0, best = 0, vol = 0;
+      sets.forEach(function (x) {
+        maxW = Math.max(maxW, x.weight);
+        if (bw) { best = Math.max(best, x.reps); vol += x.reps; }
+        else { best = Math.max(best, e1rm(x.weight, x.reps)); vol += x.weight * x.reps; }
+      });
+      out.push({ date: s.date, t: parse(s.date).getTime(), maxW: maxW, e1rm: best, vol: vol, sets: sets });
+    });
+    out.sort(function (p, q) { return p.t - q.t; });
+    return out;
+  }
+  function score(x) { return isBw(x.exercise) ? x.weight * 1000 + x.reps : e1rm(x.weight, x.reps); }
+  function prSetIds(u) {
+    var best = {}, ids = new Set();
+    store.sessionsOf(u).slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; })
+      .forEach(function (s) {
+        s.sets.forEach(function (x) {
+          var v = score(x), b = best[x.exercise];
+          if (b === undefined) best[x.exercise] = v;
+          else if (v > b + 0.01) { best[x.exercise] = v; ids.add(x.id); }
+        });
+      });
+    return ids;
+  }
+  function lastSession(u, ex) {
+    var t = iso(new Date());
+    var arr = exSeries(u, ex).filter(function (p) { return p.date < t; });
+    return arr[arr.length - 1] || null;
+  }
+
+  /* ---------- État de l'interface ---------- */
+  var state = { user: 'a', view: 'seance', ex: null, weight: 20, reps: 8, metric: 'e1rm', period: 8 };
+  var stage = 'load', offline = false, lastRefresh = 0;
+
+  function periodStart() { return state.period === 0 ? 0 : Date.now() - state.period * 7 * DAY; }
+  function periodLabel() { return state.period === 0 ? 'depuis le début' : 'sur ' + state.period + ' sem.'; }
+
+  var toastTimer;
+  function toast(msg, good) {
+    var el = $('#toast');
+    el.textContent = msg;
+    el.classList.toggle('good', !!good);
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.hidden = true; }, 2600);
+  }
+
+  /* ---------- Graphique SVG ---------- */
+  function niceTicks(min, max, count) {
+    if (max - min < 1e-9) { min -= 1; max += 1; }
+    var raw = (max - min) / count, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
+    var step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+    var lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step, ticks = [];
+    for (var v = lo; v <= hi + step / 2; v += step) ticks.push(Math.round(v * 1e6) / 1e6);
+    return { lo: lo, hi: hi, ticks: ticks };
+  }
+
+  function drawChart(host, readout, cfg) {
+    var all = [];
+    cfg.series.forEach(function (s) { all = all.concat(s.pts); });
+    if (!all.length) {
+      host.innerHTML = '<div class="empty">Aucune séance sur cette période pour cet exercice.</div>';
+      readout.innerHTML = '';
+      return;
+    }
+    var W = Math.max(280, Math.round(host.clientWidth) || 340), H = 230;
+    var m = { l: 46, r: 16, t: 14, b: 28 };
+    var tMin = Math.min.apply(null, all.map(function (p) { return p.t; }));
+    var tMax = Math.max.apply(null, all.map(function (p) { return p.t; }));
+    if (tMax - tMin < DAY) { tMin -= 3.5 * DAY; tMax += 3.5 * DAY; }
+    var vMin = Math.min.apply(null, all.map(function (p) { return p.v; }));
+    var vMax = Math.max.apply(null, all.map(function (p) { return p.v; }));
+    var pad = (vMax - vMin) * 0.12 || Math.max(1, vMax * 0.05);
+    var nt = niceTicks(Math.max(0, vMin - pad), vMax + pad, 4);
+    function x(t) { return m.l + (t - tMin) / (tMax - tMin) * (W - m.l - m.r); }
+    function y(v) { return H - m.b - (v - nt.lo) / (nt.hi - nt.lo) * (H - m.t - m.b); }
+
+    var svg = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Courbe d’évolution">';
+    nt.ticks.forEach(function (v) {
+      svg += '<line class="grid" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(v).toFixed(1) + '" y2="' + y(v).toFixed(1) + '"/>';
+      svg += '<text x="' + (m.l - 8) + '" y="' + (y(v) + 4).toFixed(1) + '" text-anchor="end">' + fmt(v, 1) + '</text>';
+    });
+    var nx = W < 420 ? 4 : 6;
+    for (var i = 0; i < nx; i++) {
+      var t = tMin + i * (tMax - tMin) / (nx - 1);
+      svg += '<text x="' + x(t).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="' + (i === 0 ? 'start' : i === nx - 1 ? 'end' : 'middle') + '">' + fmtShort(t) + '</text>';
+    }
+    svg += '<line class="guide" y1="' + m.t + '" y2="' + (H - m.b) + '" x1="0" x2="0" visibility="hidden"/>';
+    cfg.series.forEach(function (s) {
+      if (!s.pts.length) return;
+      var d = s.pts.map(function (p, k) { return (k ? 'L' : 'M') + x(p.t).toFixed(1) + ' ' + y(p.v).toFixed(1); }).join(' ');
+      if (cfg.area && s.pts.length > 1) {
+        svg += '<path d="' + d + ' L' + x(s.pts[s.pts.length - 1].t).toFixed(1) + ' ' + (H - m.b) + ' L' + x(s.pts[0].t).toFixed(1) + ' ' + (H - m.b) + ' Z" style="fill:' + s.color + ';fill-opacity:.12;stroke:none"/>';
+      }
+      if (s.pts.length > 1) svg += '<path d="' + d + '" style="fill:none;stroke:' + s.color + ';stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round"/>';
+      s.pts.forEach(function (p, k) {
+        var last = k === s.pts.length - 1;
+        svg += '<circle cx="' + x(p.t).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="' + (last ? 5 : 3) + '" style="fill:' + (last ? s.color : 'var(--surface)') + ';stroke:' + s.color + ';stroke-width:2"/>';
+      });
+    });
+    cfg.series.forEach(function (s, i) {
+      svg += '<circle class="hl-' + i + '" r="6.5" visibility="hidden" style="fill:var(--surface);stroke:' + s.color + ';stroke-width:3"/>';
+    });
+    svg += '</svg>';
+    host.innerHTML = svg;
+
+    var el = host.querySelector('svg'), guide = el.querySelector('.guide');
+    var hls = cfg.series.map(function (s, i) { return el.querySelector('.hl-' + i); });
+    function nearest(pts, t) {
+      var b = null, bd = Infinity;
+      pts.forEach(function (p) { var dd = Math.abs(p.t - t); if (dd < bd) { bd = dd; b = p; } });
+      return b;
+    }
+    function show(t) {
+      var rows = '';
+      cfg.series.forEach(function (s, i) {
+        if (!s.pts.length) return;
+        var p = t == null ? s.pts[s.pts.length - 1] : nearest(s.pts, t);
+        if (t != null) {
+          hls[i].setAttribute('cx', x(p.t).toFixed(1));
+          hls[i].setAttribute('cy', y(p.v).toFixed(1));
+          hls[i].removeAttribute('visibility');
+        }
+        rows += '<div class="ro"><span class="dot" style="--c:' + s.color + '"></span><span class="rn">' + esc(s.name) + '</span>' +
+          '<span class="rd">' + fmtShort(p.t) + '</span><span class="rv">' + fmt(p.v, 1) + '<small>' + cfg.unit + '</small></span></div>';
+      });
+      if (t != null) {
+        guide.setAttribute('x1', x(t).toFixed(1)); guide.setAttribute('x2', x(t).toFixed(1));
+        guide.removeAttribute('visibility');
+      }
+      readout.innerHTML = rows;
+    }
+    function pick(clientX) {
+      var r = el.getBoundingClientRect();
+      var px = (clientX - r.left) * (W / r.width);
+      var t = tMin + (px - m.l) / (W - m.l - m.r) * (tMax - tMin);
+      var best = nearest(all, t);
+      if (best) show(best.t);
+    }
+    el.addEventListener('pointerdown', function (ev) { pick(ev.clientX); });
+    el.addEventListener('pointermove', function (ev) { pick(ev.clientX); });
+    show(null);
+  }
+
+  /* ---------- Rendu : en-tête et filtres ---------- */
+  function applyNames() {
+    var me = store.profiles.find(function (p) { return p.id === store.meId; });
+    var other = store.profiles.find(function (p) { return p.id !== store.meId; });
+    USERS.a.name = me ? me.name : 'Moi';
+    USERS.b.name = other ? other.name : '—';
+  }
+  function renderHeader() {
+    document.body.setAttribute('data-me', state.user);
+    $('#who').innerHTML = '<span class="dot" style="--c:var(--a)"></span>' + esc(USERS.a.name) +
+      (offline ? '<span class="off">hors ligne</span>' : '');
+  }
+  function fillSelect() {
+    $('#f-ex').innerHTML = store.data.exercises.map(function (e) {
+      return '<option value="' + esc(e.id) + '"' + (e.id === state.ex ? ' selected' : '') + '>' + esc(e.name) + '</option>';
+    }).join('');
+  }
+  function syncFilters() {
+    var short = isBw(state.ex)
+      ? { e1rm: 'Reps max', maxW: 'Lest max', vol: 'Total reps' }
+      : { e1rm: '1RM est.', maxW: 'Charge max', vol: 'Tonnage' };
+    $$('#f-metric button').forEach(function (b) {
+      b.textContent = short[b.dataset.metric];
+      b.setAttribute('aria-pressed', String(b.dataset.metric === state.metric));
+    });
+    $$('#f-period button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.period) === state.period)); });
+    $('#f-ex').value = state.ex;
+  }
+
+  /* ---------- Rendu : séance ---------- */
+  function syncEntry() {
+    $('#in-w').value = fmt(state.weight, 2);
+    $('#in-r').value = String(state.reps);
+    var bw = isBw(state.ex);
+    $('#bw').checked = bw;
+    $('#lbl-w').innerHTML = bw ? 'Lest ajouté <span class="unit">(kg, 0 = poids du corps)</span>' : 'Poids <span class="unit">(kg)</span>';
+  }
+  function prefill() {
+    var today = store.todaySession(state.user, false);
+    var ts = today ? today.sets.filter(function (x) { return x.exercise === state.ex; }) : [];
+    var w = isBw(state.ex) ? 0 : 20, r = 8;
+    if (ts.length) { w = ts[ts.length - 1].weight; r = ts[ts.length - 1].reps; }
+    else {
+      var l = lastSession(state.user, state.ex);
+      if (l) { w = l.sets[0].weight; r = l.sets[0].reps; }
+    }
+    state.weight = w; state.reps = r;
+    syncEntry();
+  }
+  function renderSeance() {
+    var u = state.user;
+    var sd = store.todaySession(u);
+    $('#day').textContent = (sd ? parse(sd.date) : new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+    var today = store.todaySession(u, false);
+    var counts = {};
+    if (today) today.sets.forEach(function (s) { counts[s.exercise] = (counts[s.exercise] || 0) + 1; });
+
+    $('#chips').innerHTML = store.data.exercises.map(function (e) {
+      return '<button type="button" class="chip" data-ex="' + esc(e.id) + '" aria-pressed="' + (e.id === state.ex) + '">' + esc(e.name) +
+        (counts[e.id] ? '<span class="count">' + counts[e.id] + '</span>' : '') + '</button>';
+    }).join('');
+
+    var l = lastSession(u, state.ex);
+    $('#last').innerHTML = l
+      ? 'Dernière fois · ' + rel(l.date) + '<br><strong>' + esc(fmtSets(l.sets)) + '</strong>'
+      : 'Première fois sur cet exercice : pars léger et note tes sensations.';
+    var n = counts[state.ex] || 0;
+    $('#submit-set').textContent = 'Valider la série ' + (n + 1);
+
+    var prs = prSetIds(u);
+    if (!today || !today.sets.length) {
+      $('#today').innerHTML = '<div class="empty">Aucune série pour l’instant. Choisis un exercice et valide ta première série.</div>';
+      renderPush();
+      return;
+    }
+    var html = '';
+    byExercise(today.sets).forEach(function (sets, ex) {
+      var bw = isBw(ex);
+      html += '<div class="group"><div class="group-head"><h3>' + esc(exName(ex)) + '</h3><span>' +
+        (bw ? sets.reduce(function (a, s) { return a + s.reps; }, 0) + ' reps' : fmt(tonnage(sets), 0) + ' kg de tonnage') + '</span></div>';
+      sets.forEach(function (s, i) {
+        html += '<div class="set-row"><span class="set-no">' + (i + 1) + '</span>' +
+          '<span class="set-main">' + (bw ? (s.weight ? '+' + fmt(s.weight) + ' kg' : 'PC') : fmt(s.weight) + ' kg') + ' × ' + s.reps + '</span>' +
+          '<span>' + (prs.has(s.id) ? '<span class="pr">PR</span>' : '') + '</span>' +
+          '<button type="button" class="del" data-del="' + esc(s.id) + '" aria-label="Supprimer la série ' + (i + 1) + '">×</button></div>';
+      });
+      html += '</div>';
+    });
+    $('#today').innerHTML = html;
+    renderPush();
+  }
+
+  /* ---------- Envoi de la séance ---------- */
+  var confirming = false;
+  function renderPush() {
+    var host = $('#push'), s = store.todaySession(state.user, false);
+    if (!s || !s.sets.length) { confirming = false; host.innerHTML = ''; return; }
+    var other = USERS[state.user === 'a' ? 'b' : 'a'].name;
+    var exN = byExercise(s.sets).size, n = s.sets.length;
+    var sum = exN + ' exercice' + (exN > 1 ? 's' : '') + ' · ' + n + ' série' + (n > 1 ? 's' : '');
+    if (s.pushed) {
+      var at = s.pushedAt ? new Date(s.pushedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+      host.innerHTML = '<div class="push"><div class="sent">Séance envoyée' + (at ? ' à ' + at : '') + '</div>' +
+        '<p>' + esc(other) + ' peut la voir dans Comparer. Ajouter ou supprimer une série la remet en brouillon.</p></div>';
+    } else if (confirming) {
+      host.innerHTML = '<div class="push" role="group" aria-label="Confirmation d’envoi"><div class="sum">Envoyer la séance ?</div>' +
+        '<p>' + sum + '. Vérifie que toutes tes séries sont saisies : ' + esc(other) + ' verra la séance dans Comparer.</p>' +
+        '<div class="actions"><button type="button" class="btn ghost" data-push="cancel">Annuler</button>' +
+        '<button type="button" class="btn" data-push="confirm">Confirmer</button></div></div>';
+    } else {
+      host.innerHTML = '<div class="push"><p>Brouillon : visible uniquement par toi. Quand toutes les séries sont saisies, envoie la séance à ' + esc(other) + '.</p>' +
+        '<button type="button" class="btn" data-push="ask">Terminer et envoyer la séance</button></div>';
+    }
+  }
+
+  /* ---------- Rendu : historique ---------- */
+  function renderHistorique() {
+    var u = state.user;
+    var sessions = store.sessionsOf(u).slice().sort(function (a, b) { return a.date < b.date ? 1 : a.date > b.date ? -1 : 0; });
+    var prs = prSetIds(u);
+    var ws = weekStart(iso(new Date()));
+    var pd = parse(ws); pd.setDate(pd.getDate() - 7);
+    var pws = iso(pd);
+    function agg(w) {
+      var l = sessions.filter(function (s) { return weekStart(s.date) === w; });
+      return { n: l.length, ton: l.reduce(function (a, s) { return a + tonnage(s.sets); }, 0) };
+    }
+    function cell(title, a) {
+      return '<div><div class="k">' + title + '</div><div class="v">' + a.n + '<small>séance' + (a.n > 1 ? 's' : '') + '</small></div>' +
+        '<div class="s">' + fmt(a.ton / 1000, 1) + ' t de tonnage</div></div>';
+    }
+    $('#weeks').innerHTML = cell('Cette semaine', agg(ws)) + cell('Semaine dernière', agg(pws));
+
+    if (!sessions.length) { $('#sessions').innerHTML = '<div class="empty">Pas encore de séance enregistrée.</div>'; return; }
+    $('#sessions').innerHTML = sessions.map(function (s) {
+      var groups = byExercise(s.sets), prCount = s.sets.filter(function (x) { return prs.has(x.id); }).length;
+      var body = '';
+      groups.forEach(function (sets, ex) {
+        var hasPr = sets.some(function (x) { return prs.has(x.id); });
+        body += '<div class="exline"><span class="n">' + esc(exName(ex)) + (hasPr ? ' <span class="pr">PR</span>' : '') + '</span><span class="s">' + esc(fmtSets(sets)) + '</span></div>';
+      });
+      return '<details class="sess"><summary><span class="d">' + esc(fmtDay(s.date)) + (prCount ? ' <span class="pr">PR</span>' : '') + (s.pushed ? '' : ' <span class="pill">Brouillon</span>') + '</span>' +
+        '<span class="m">' + groups.size + ' exercice' + (groups.size > 1 ? 's' : '') + ' · ' + s.sets.length + ' séries</span>' +
+        '<span class="t">' + fmt(tonnage(s.sets) / 1000, 1) + '<small>t</small></span></summary><div class="body">' + body + '</div></details>';
+    }).join('');
+  }
+
+  /* ---------- Rendu : progrès ---------- */
+  function renderProgres() {
+    var u = state.user, m = metricsFor(state.ex)[state.metric], start = periodStart(), bwEx = isBw(state.ex);
+    var all = exSeries(u, state.ex);
+    var pts = all.filter(function (p) { return p.t >= start; });
+    var rec = all.length ? Math.max.apply(null, all.map(function (p) { return p.e1rm; })) : null;
+    var delta = null, pct = null;
+    if (pts.length > 1) {
+      var f = pts[0][m.key], l = pts[pts.length - 1][m.key];
+      delta = l - f; pct = f > 0 ? (l / f - 1) * 100 : null;
+    }
+    $('#p-stats').innerHTML =
+      '<div class="stat"><div class="v">' + (rec == null ? '—' : fmt(rec, bwEx ? 0 : 1) + '<small>' + (bwEx ? 'reps' : 'kg') + '</small>') + '</div><div class="k">' + (bwEx ? 'Record de reps' : 'Record 1RM est.') + '</div></div>' +
+      '<div class="stat"><div class="v' + (delta > 0 ? ' g' : '') + '">' + (delta == null ? '—' : sgn(delta, 1) + '<small>' + m.unit + '</small>') + '</div><div class="k">' + m.label + ' ' + periodLabel() + (pct == null ? '' : ' (' + sgn(pct, 1) + ' %)') + '</div></div>' +
+      '<div class="stat"><div class="v">' + pts.length + '</div><div class="k">séance' + (pts.length > 1 ? 's' : '') + ' ' + periodLabel() + '</div></div>';
+    $('#p-label').textContent = m.label + ' · ' + exName(state.ex) + ' (' + m.unit + ')';
+    drawChart($('#p-chart'), $('#p-readout'), {
+      area: true, unit: m.unit,
+      series: [{ name: USERS[u].name, color: 'var(--' + u + ')', pts: pts.map(function (p) { return { t: p.t, v: p[m.key] }; }) }]
+    });
+  }
+
+  /* ---------- Rendu : comparaison ---------- */
+  function renderComparer() {
+    var m = metricsFor(state.ex)[state.metric], start = periodStart(), now = Date.now(), bwEx = isBw(state.ex);
+    $('#c-label').textContent = m.label + ' · ' + exName(state.ex) + ' (' + m.unit + ')';
+    var seriesAll = { a: exSeries('a', state.ex), b: exSeries('b', state.ex) };
+    drawChart($('#c-chart'), $('#c-readout'), {
+      area: false, unit: m.unit,
+      series: ['a', 'b'].map(function (u) {
+        return {
+          name: USERS[u].name, color: 'var(--' + u + ')',
+          pts: seriesAll[u].filter(function (p) { return p.t >= start; }).map(function (p) { return { t: p.t, v: p[m.key] }; })
+        };
+      })
+    });
+
+    var weeks = state.period;
+    if (!weeks) {
+      var firsts = ['a', 'b'].map(function (u) { return seriesAll[u].length ? seriesAll[u][0].t : now; });
+      weeks = Math.max(1, Math.ceil((now - Math.min.apply(null, firsts)) / (7 * DAY)));
+    }
+    function stats(u) {
+      var pts = seriesAll[u].filter(function (p) { return p.t >= start; });
+      if (!pts.length) return null;
+      return {
+        e1rm: Math.max.apply(null, pts.map(function (p) { return p.e1rm; })),
+        maxW: Math.max.apply(null, pts.map(function (p) { return p.maxW; })),
+        volWk: pts.reduce(function (a, p) { return a + p.vol; }, 0) / weeks,
+        freq: pts.length / weeks,
+        prog: pts.length > 1 && pts[0].e1rm > 0 ? (pts[pts.length - 1].e1rm / pts[0].e1rm - 1) * 100 : null
+      };
+    }
+    var st = { a: stats('a'), b: stats('b') };
+    var rows = bwEx ? [
+      { k: 'e1rm', label: 'Reps max sur une série', unit: 'reps', d: 0, diff: 'reps' },
+      { k: 'maxW', label: 'Lest max', unit: 'kg', d: 1, diff: 'kg' },
+      { k: 'volWk', label: 'Reps par semaine', unit: 'reps', d: 0, diff: '%' },
+      { k: 'freq', label: 'Séances par semaine', unit: '', d: 1, diff: '%' },
+      { k: 'prog', label: 'Progression des reps max ' + periodLabel(), unit: '%', d: 1, diff: null, signed: true }
+    ] : [
+      { k: 'e1rm', label: '1RM estimé', unit: 'kg', d: 1, diff: 'kg' },
+      { k: 'maxW', label: 'Charge max', unit: 'kg', d: 1, diff: 'kg' },
+      { k: 'volWk', label: 'Tonnage par semaine', unit: 'kg', d: 0, diff: '%' },
+      { k: 'freq', label: 'Séances par semaine', unit: '', d: 1, diff: '%' },
+      { k: 'prog', label: 'Progression du 1RM ' + periodLabel(), unit: '%', d: 1, diff: null, signed: true }
+    ];
+    $('#c-metrics').innerHTML = rows.map(function (r) {
+      var va = st.a ? st.a[r.k] : null, vb = st.b ? st.b[r.k] : null;
+      var max = Math.max(va == null ? 0 : Math.abs(va), vb == null ? 0 : Math.abs(vb));
+      var chip = '';
+      if (r.diff && va > 0 && vb > 0) {
+        var hi = Math.max(va, vb), lo = Math.min(va, vb), lead = va >= vb ? 'a' : 'b', p = (hi / lo - 1) * 100;
+        chip = p < 1 ? '<span class="lead eq">Égalité</span>'
+          : '<span class="lead" style="--c:var(--' + lead + ')">' + esc(USERS[lead].name) + ' +' + (r.diff === '%' ? Math.round(p) + ' %' : fmt(hi - lo, 1) + ' ' + r.diff) + '</span>';
+      }
+      function bar(u, v) {
+        var w = v == null || max === 0 ? 0 : Math.abs(v) / max * 100;
+        var txt = v == null ? '—' : (r.signed ? sgn(v, r.d) : fmt(v, r.d)) + (r.unit ? '<small>' + r.unit + '</small>' : '');
+        return '<div class="bar-row" style="--c:var(--' + u + ')"><span class="who">' + esc(USERS[u].name) + '</span>' +
+          '<span class="track"><span class="fill" style="width:' + w.toFixed(1) + '%"></span></span><span class="val">' + txt + '</span></div>';
+      }
+      return '<div class="metric"><div class="metric-head"><h3>' + r.label + '</h3>' + chip + '</div>' + bar('a', va) + bar('b', vb) + '</div>';
+    }).join('');
+  }
+
+  /* ---------- Navigation ---------- */
+  function render() {
+    if (state.view === 'seance') renderSeance();
+    else if (state.view === 'historique') renderHistorique();
+    else if (state.view === 'progres') renderProgres();
+    else renderComparer();
+  }
+  function showView() {
+    VIEWS.forEach(function (v) { $('#v-' + v).hidden = v !== state.view; });
+    $$('.tab').forEach(function (t) {
+      if (t.dataset.view === state.view) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+    });
+    $('#filters').hidden = !(state.view === 'progres' || state.view === 'comparer');
+    syncFilters();
+    render();
+  }
+  function go(view) {
+    state.view = view;
+    try { if (location.hash !== '#' + view) location.hash = view; } catch (e) { /* ignoré */ }
+    showView();
+    window.scrollTo(0, 0);
+  }
+  function viewFromHash() {
+    var h = (location.hash || '').replace('#', '');
+    return VIEWS.indexOf(h) >= 0 ? h : 'seance';
+  }
+
+  /* ---------- Événements ---------- */
+  $$('.tab').forEach(function (t) {
+    t.addEventListener('click', function (e) { e.preventDefault(); go(t.dataset.view); });
+  });
+  window.addEventListener('hashchange', function () {
+    var v = viewFromHash();
+    if (stage === 'app' && v !== state.view) { state.view = v; showView(); }
+  });
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { if (stage === 'app' && (state.view === 'progres' || state.view === 'comparer')) render(); }, 120);
+  });
+
+  $('#f-ex').addEventListener('change', function (e) { state.ex = e.target.value; prefill(); syncFilters(); render(); });
+  $('#f-metric').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-metric]');
+    if (b) { state.metric = b.dataset.metric; syncFilters(); render(); }
+  });
+  $('#f-period').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-period]');
+    if (b) { state.period = Number(b.dataset.period); syncFilters(); render(); }
+  });
+
+  $('#chips').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-ex]');
+    if (!b) return;
+    state.ex = b.dataset.ex; fillSelect(); prefill(); renderSeance();
+  });
+  $('#add-ex').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var inp = $('#new-ex'), name = inp.value.trim().replace(/\s+/g, ' ');
+    if (!name) return;
+    if (store.data.exercises.some(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })) {
+      toast('Cet exercice existe déjà.'); return;
+    }
+    var btn = $('#add-ex button'), bwOn = $('#new-bw').checked;
+    btn.disabled = true;
+    try {
+      var ex = await store.addExercise(name, bwOn);
+      inp.value = ''; $('#new-bw').checked = false; state.ex = ex.id; fillSelect(); prefill(); renderSeance();
+      toast('Exercice ajouté : ' + name);
+    } catch (err) {
+      toast(/duplicate|unique/i.test(errText(err)) ? 'Cet exercice existe déjà.' : 'Ajout impossible : ' + errText(err));
+    } finally { btn.disabled = false; }
+  });
+
+  $('#bw').addEventListener('change', async function (e) {
+    var on = e.target.checked;
+    var p = store.setBw(state.ex, on);
+    state.weight = on ? 0 : 20;
+    syncEntry(); renderSeance();
+    try { await p; } catch (err) { toast('Modification impossible : ' + errText(err)); syncEntry(); renderSeance(); }
+  });
+  $('#entry').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.dataset.w) {
+      var w = parseNum($('#in-w').value); if (!isFinite(w)) w = state.weight;
+      state.weight = Math.max(0, Math.round((w + Number(b.dataset.w)) * 100) / 100); syncEntry();
+    } else if (b.dataset.r) {
+      var r = parseInt($('#in-r').value, 10); if (!isFinite(r)) r = state.reps;
+      state.reps = Math.max(1, r + Number(b.dataset.r)); syncEntry();
+    }
+  });
+  $('#entry').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var w = parseNum($('#in-w').value), r = parseInt($('#in-r').value, 10);
+    if (!isFinite(w) || w < 0) { toast('Indique un poids valide.'); return; }
+    if (!isFinite(r) || r < 1) { toast('Indique au moins une répétition.'); return; }
+    state.weight = w; state.reps = r;
+    var set = store.addSet(state.user, state.ex, w, r);
+    var today = store.todaySession(state.user, false);
+    var n = today.sets.filter(function (x) { return x.exercise === state.ex; }).length;
+    var isPr = prSetIds(state.user).has(set.id);
+    var bwEx = isBw(state.ex), load = bwEx ? (w ? '+' + fmt(w) + ' kg' : 'PC') : fmt(w) + ' kg';
+    if (isPr) toast(bwEx ? 'Nouveau record · ' + load + ' × ' + r : 'Nouveau record · 1RM estimé ' + fmt(e1rm(w, r), 1) + ' kg', true);
+    else toast('Série ' + n + ' enregistrée · ' + load + ' × ' + r);
+    confirming = false; syncEntry(); renderSeance();
+  });
+  ['#in-w', '#in-r'].forEach(function (id) {
+    $(id).addEventListener('focus', function (e) { e.target.select(); });
+  });
+  $('#today').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-del]');
+    if (!b) return;
+    store.removeSet(state.user, b.dataset.del);
+    confirming = false;
+    renderSeance();
+  });
+  $('#push').addEventListener('click', async function (e) {
+    var b = e.target.closest('button[data-push]');
+    if (!b) return;
+    var a = b.dataset.push;
+    if (a === 'ask') confirming = true;
+    else if (a === 'cancel') confirming = false;
+    else if (a === 'confirm') {
+      b.disabled = true; b.textContent = 'Envoi…';
+      try {
+        await store.pushSession();
+        confirming = false;
+        toast('Séance envoyée à ' + USERS.b.name, true);
+      } catch (err) {
+        toast('Envoi impossible : ' + errText(err) + '. Ta séance reste en brouillon.');
+      }
+      renderSeance();
+      return;
+    }
+    renderPush();
+  });
+
+  /* ---------- Connexion, chargement, déconnexion ---------- */
+  function setStage(st) {
+    stage = st;
+    $('#stage-auth').hidden = st !== 'auth';
+    $('#stage-load').hidden = st !== 'load';
+    $('.tabs').hidden = st !== 'app';
+    $('#who').hidden = st !== 'app';
+    if (st !== 'app') {
+      VIEWS.forEach(function (v) { $('#v-' + v).hidden = true; });
+      $('#filters').hidden = true;
+    }
+  }
+  function loadMessage(msg, retry) {
+    setStage('load');
+    $('#load-msg').textContent = msg;
+    $('#retry').hidden = !retry;
+  }
+  function enterApp() {
+    applyNames(); renderHeader();
+    if (!store.exercises.some(function (x) { return x.id === state.ex; })) state.ex = store.exercises.length ? store.exercises[0].id : null;
+    fillSelect(); prefill(); setStage('app'); showView();
+  }
+  function isAuthError(err) { return !!err && (err.status === 401 || /jwt|not authenticated/i.test(errText(err))); }
+
+  async function start(session) {
+    store.meId = session.user.id;
+    store.loadDraft();
+    loadMessage('Chargement de tes séances…', false);
+    var ready = false, cached = lsGet(CACHE_KEY + store.meId);
+    if (cached) { store.ingest(cached); ready = true; }
+    try {
+      await store.refresh(); ready = true; offline = false; lastRefresh = Date.now();
+    } catch (err) {
+      if (isAuthError(err)) { await logout(); return; }
+      offline = true;
+    }
+    if (!ready) { loadMessage('Impossible de charger les données. Vérifie ta connexion.', true); return; }
+    enterApp();
+    if (offline) toast('Hors ligne : données en cache');
+  }
+  async function softRefresh(manual) {
+    if (stage !== 'app') return;
+    try {
+      await store.refresh(); offline = false; lastRefresh = Date.now();
+      applyNames(); renderHeader(); fillSelect(); syncFilters(); render();
+      if (manual) toast('À jour', true);
+    } catch (err) {
+      if (isAuthError(err)) { await logout(); return; }
+      offline = true; renderHeader();
+      if (manual) toast('Actualisation impossible : ' + errText(err));
+    }
+  }
+  async function logout() {
+    try { if (sb) await sb.auth.signOut(); } catch (e) { /* ignoré */ }
+    confirming = false; store.meId = null; store.draft = null; store.server = []; store.rebuild();
+    setStage('auth');
+  }
+
+  $('#login').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var btn = $('#login-btn'), err = $('#login-err');
+    err.hidden = true; btn.disabled = true; btn.textContent = 'Connexion…';
+    try {
+      var r = await sb.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
+      if (r.error) throw r.error;
+      $('#password').value = '';
+      await start(r.data.session);
+    } catch (ex) {
+      err.textContent = /invalid/i.test(errText(ex)) ? 'E-mail ou mot de passe incorrect.' : 'Connexion impossible : ' + errText(ex);
+      err.hidden = false;
+      setStage('auth');
+    } finally { btn.disabled = false; btn.textContent = 'Se connecter'; }
+  });
+  $('#retry').addEventListener('click', function () { if (sb) init(); else location.reload(); });
+  $('#refresh').addEventListener('click', function () { softRefresh(true); });
+  $('#logout').addEventListener('click', function () { logout(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && stage === 'app' && Date.now() - lastRefresh > 30000) softRefresh(false);
+  });
+
+  /* ---------- Démarrage ---------- */
+  async function init() {
+    state.view = viewFromHash();
+    if (!window.supabase || !window.supabase.createClient) {
+      loadMessage('La bibliothèque Supabase n’a pas pu se charger. Vérifie ta connexion.', true);
+      return;
+    }
+    if (!sb) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    loadMessage('Chargement…', false);
+    try {
+      var r = await sb.auth.getSession();
+      if (r.data && r.data.session) await start(r.data.session); else setStage('auth');
+    } catch (err) { setStage('auth'); }
+  }
+  init();
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () { /* ignoré */ }); });
+  }
+})();
+</script>
+</body>
+</html>
+
