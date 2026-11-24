@@ -1205,15 +1205,20 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     store.meId = session.user.id;
     store.loadDraft();
     loadMessage('Chargement de tes séances…', false);
-    var ready = false, cached = lsGet(CACHE_KEY + store.meId);
+    var ready = false, failure = null, cached = lsGet(CACHE_KEY + store.meId);
     if (cached) { store.ingest(cached); ready = true; }
     try {
       await store.refresh(); ready = true; offline = false; lastRefresh = Date.now();
     } catch (err) {
       if (isAuthError(err)) { await logout(); return; }
-      offline = true;
+      offline = true; failure = err;
     }
-    if (!ready) { loadMessage('Impossible de charger les données. Vérifie ta connexion.', true); return; }
+    if (!ready) {
+      loadMessage('Impossible de charger les données : ' + errText(failure) +
+        (failure && failure.code ? ' (code ' + failure.code + ')' : '') +
+        ' — tentative de ' + new Date().toLocaleTimeString('fr-FR'), true);
+      return;
+    }
     enterApp();
     if (offline) toast('Hors ligne : données en cache');
   }
@@ -1245,7 +1250,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
       $('#password').value = '';
       await start(r.data.session);
     } catch (ex) {
-      err.textContent = /invalid/i.test(errText(ex)) ? 'E-mail ou mot de passe incorrect.' : 'Connexion impossible : ' + errText(ex);
+      err.textContent = /invalid login credentials/i.test(errText(ex)) ? 'E-mail ou mot de passe incorrect.' : 'Connexion impossible : ' + errText(ex);
       err.hidden = false;
       setStage('auth');
     } finally { btn.disabled = false; btn.textContent = 'Se connecter'; }
