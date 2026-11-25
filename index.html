@@ -26,6 +26,9 @@
   --line: #D8DEE8;
   --a: #2352DB;
   --b: #D4372F;
+  --u3: #0B7C74;
+  --u4: #A5670F;
+  --u5: #7A3FD1;
   --good: #17794A;
   --on-solid: #FFFFFF;
   --on-good: #FFFFFF;
@@ -35,19 +38,20 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0E1218; --surface: #161B24; --surface-2: #1F2632; --ink: #E9EDF4; --muted: #9AA5B8; --line: #283040;
-    --a: #7099FF; --b: #FF7B70; --good: #4FC58B; --on-solid: #0B0F16; --on-good: #07120C;
+    --a: #7099FF; --b: #FF7B70; --u3: #4FD1C5; --u4: #F2B84B; --u5: #B792FF; --good: #4FC58B; --on-solid: #0B0F16; --on-good: #07120C;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0E1218; --surface: #161B24; --surface-2: #1F2632; --ink: #E9EDF4; --muted: #9AA5B8; --line: #283040;
-  --a: #7099FF; --b: #FF7B70; --good: #4FC58B; --on-solid: #0B0F16; --on-good: #07120C;
+  --a: #7099FF; --b: #FF7B70; --u3: #4FD1C5; --u4: #F2B84B; --u5: #B792FF; --good: #4FC58B; --on-solid: #0B0F16; --on-good: #07120C;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
+* { touch-action: manipulation; } /* supprime le zoom au double-tap, le pincement reste possible */
 body {
   margin: 0;
   background: var(--bg);
@@ -220,7 +224,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
 
 /* Progrès et comparaison */
 .filters { display: grid; gap: 10px; margin-bottom: 18px; }
-.filters select {
+.filters select, .sel {
   width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px;
   background: var(--surface); font-size: 16px; font-weight: 600;
 }
@@ -255,7 +259,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   font-size: 12px; font-weight: 700;
 }
 .lead.eq { background: var(--surface-2); color: var(--muted); }
-.bar-row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 9px; }
+.bar-row { display: grid; grid-template-columns: 68px minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 9px; }
 .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--muted); }
 .track { height: 10px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
 .fill { display: block; height: 100%; border-radius: 5px; background: var(--c); }
@@ -296,6 +300,36 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
 .err { margin-top: 12px; font-size: 14px; color: var(--b); }
 .links { display: flex; flex-wrap: wrap; gap: 24px; }
 .stage .note { margin: 6px 0 18px; }
+.pair { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8px; }
+.newex { margin-top: 10px; border: 1px dashed var(--line); border-radius: 12px; }
+.newex summary, .exset summary { display: flex; align-items: center; cursor: pointer; list-style: none; }
+.newex summary::-webkit-details-marker, .exset summary::-webkit-details-marker { display: none; }
+.newex summary { min-height: 44px; padding: 0 14px; font-size: 15px; font-weight: 600; }
+.newex summary::before { content: "+"; width: 22px; font: 700 22px/1 var(--font-display); }
+.newex[open] summary::before { content: "\2212"; }
+.newex-body, .exset-body { display: grid; gap: 12px; padding: 4px 14px 16px; }
+.exset { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.exset summary { min-height: 36px; font-size: 13px; font-weight: 600; letter-spacing: .04em; color: var(--muted); }
+.exset summary::after { content: "\25BE"; margin-left: 8px; }
+.exset[open] summary::after { content: "\25B4"; }
+.exset-body { padding: 8px 0 0; }
+.sel {
+  width: 100%; height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface); font-size: 16px; font-weight: 600;
+}
+.check { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; font-weight: 600; cursor: pointer; }
+.check input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; accent-color: var(--me); }
+.check small { display: block; font-weight: 400; font-size: 13px; color: var(--muted); }
+.btn.small { height: 48px; margin-top: 4px; font-size: 18px; }
+.fine { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.fine-btn {
+  height: 44px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  font: 700 20px/1 var(--font-display); font-variant-numeric: tabular-nums;
+}
+.fine-btn:active { transform: scale(.97); }
+.uni-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+#c-pick .label { margin-top: 4px; }
+#c-pick[hidden] + .label { margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 @media (max-width: 380px) {
   .num { font-size: 46px; }
@@ -339,7 +373,10 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   </section>
 
   <div id="filters" class="filters" hidden>
-    <select id="f-ex" aria-label="Exercice"></select>
+    <div class="pair">
+      <select id="f-group" aria-label="Groupe musculaire"></select>
+      <select id="f-ex" aria-label="Exercice"></select>
+    </div>
     <div class="segrow">
       <div class="seg" id="f-metric" role="group" aria-label="Mesure">
         <button type="button" data-metric="e1rm">1RM est.</button>
@@ -356,25 +393,46 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
 
   <section id="v-seance" class="view">
     <div class="dayline"><h1 class="day" id="day"></h1><span>Séance du jour</span></div>
+    <div class="label">Groupe musculaire</div>
+    <div class="chips" id="group-chips"></div>
     <div class="label">Exercice</div>
     <div class="chips" id="chips"></div>
-    <form class="add-ex" id="add-ex" autocomplete="off">
-      <input id="new-ex" type="text" placeholder="Nouvel exercice" maxlength="40" aria-label="Nom du nouvel exercice">
-      <button type="submit">Ajouter</button>
-    </form>
-    <label class="add-bw"><input type="checkbox" id="new-bw"> Nouvel exercice au poids du corps</label>
+    <details class="newex" id="newex">
+      <summary>Nouvel exercice</summary>
+      <form class="newex-body" id="add-ex" autocomplete="off">
+        <input class="txt" id="new-ex" type="text" placeholder="Nom de l’exercice" maxlength="40" aria-label="Nom du nouvel exercice">
+        <div>
+          <label class="field-label" for="new-group">Groupe musculaire travaillé</label>
+          <select class="sel" id="new-group"></select>
+        </div>
+        <label class="check"><input type="checkbox" id="new-bw"><span>Poids du corps<small>Le poids saisi sera un lest ajouté (0 = sans lest).</small></span></label>
+        <label class="check"><input type="checkbox" id="new-uni"><span>Unilatéral (un côté à la fois)<small>Tu saisis une seule série, elle compte pour les deux côtés dans les calculs.</small></span></label>
+        <button type="submit" class="btn small">Ajouter l’exercice</button>
+      </form>
+    </details>
     <p class="last" id="last"></p>
     <form class="card" id="entry" autocomplete="off">
-      <label class="bw-toggle">
-        <input type="checkbox" id="bw">
-        <span>Exercice au poids du corps<small>Le poids saisi devient un lest ajouté (0 = sans lest).</small></span>
-      </label>
+      <details class="exset" id="exset">
+        <summary id="exset-sum">Réglages de l’exercice</summary>
+        <div class="exset-body">
+          <div>
+            <label class="field-label" for="ex-group">Groupe musculaire</label>
+            <select class="sel" id="ex-group"></select>
+          </div>
+          <label class="check"><input type="checkbox" id="bw"><span>Poids du corps<small>Le poids saisi devient un lest ajouté (0 = sans lest).</small></span></label>
+          <label class="check"><input type="checkbox" id="uni"><span>Unilatéral (un côté à la fois)<small>Une seule série saisie compte pour les deux côtés (tonnage doublé).</small></span></label>
+        </div>
+      </details>
       <div class="field">
         <label class="field-label" for="in-w" id="lbl-w">Poids <span class="unit">(kg)</span></label>
         <div class="stepper">
           <button type="button" class="step-btn" data-w="-2.5" aria-label="Moins 2,5 kilos">−</button>
           <input class="num" id="in-w" type="text" inputmode="decimal" enterkeyhint="done">
           <button type="button" class="step-btn" data-w="2.5" aria-label="Plus 2,5 kilos">+</button>
+        </div>
+        <div class="fine" role="group" aria-label="Ajustement fin du poids">
+          <button type="button" class="fine-btn" data-w="-0.5" aria-label="Moins 500 grammes">−0,5</button>
+          <button type="button" class="fine-btn" data-w="0.5" aria-label="Plus 500 grammes">+0,5</button>
         </div>
       </div>
       <div class="field">
@@ -385,6 +443,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
           <button type="button" class="step-btn" data-r="1" aria-label="Plus une répétition">+</button>
         </div>
       </div>
+      <p class="uni-note" id="uni-note" hidden>Exercice unilatéral : une seule série suffit, elle compte pour les deux côtés.</p>
       <button type="submit" class="btn" id="submit-set">Valider la série</button>
     </form>
     <div class="label">Aujourd’hui</div>
@@ -411,6 +470,10 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   </section>
 
   <section id="v-comparer" class="view" hidden>
+    <div id="c-pick" hidden>
+      <div class="label">Comparer avec</div>
+      <div class="chips" id="c-who"></div>
+    </div>
     <div class="label" id="c-label"></div>
     <div class="chart" id="c-chart"></div>
     <div class="readout" id="c-readout"></div>
@@ -449,8 +512,16 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   // repose sur les règles de sécurité (RLS) de la base, pas sur le secret de cette clé.
   var SUPABASE_URL = 'https://oojdtyxodkhvoxeiojnd.supabase.co';
   var SUPABASE_KEY = 'sb_publishable_crzXY62RLVGmvpou4RdJyA_uP77Bpa9';
-  // « a » = la personne connectée, « b » = l'autre. Les prénoms viennent de la table profiles.
-  var USERS = { a: { name: 'Moi' }, b: { name: '—' } };
+  // « a » = la personne connectée ; les autres sont identifiées par leur id de profil.
+  // Les prénoms viennent de la table profiles ; les couleurs sont attribuées dans l'ordre alphabétique des prénoms.
+  var USERS = { a: { name: 'Moi' } };
+  var COLORS = { a: 'var(--a)' };
+  var PALETTE = ['var(--b)', 'var(--u3)', 'var(--u4)', 'var(--u5)'];
+  var GROUPS = ['Pectoraux', 'Dos', 'Épaules', 'Biceps', 'Triceps', 'Avant-bras', 'Quadriceps', 'Ischio-jambiers', 'Fessiers', 'Mollets', 'Abdominaux'];
+  var NO_GROUP = 'Autre';
+  function colorOf(k) { return COLORS[k] || 'var(--muted)'; }
+  function nameOf(k) { return USERS[k] ? USERS[k].name : '—'; }
+  function othersKeys() { return Object.keys(USERS).filter(function (k) { return k !== 'a'; }); }
   var VIEWS = ['seance', 'historique', 'progres', 'comparer'];
   // Pour un exercice au poids du corps : « 1RM » devient le max de répétitions, la charge est le lest ajouté.
   function metricsFor(ex) {
@@ -505,7 +576,8 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   function uid() { return 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
   function parseNum(v) { return parseFloat(String(v).replace(',', '.').replace(/[^0-9.\-]/g, '')); }
   function e1rm(w, r) { return r <= 1 ? w : w * (1 + r / 30); }
-  function tonnage(sets) { return sets.reduce(function (a, s) { return a + s.weight * s.reps; }, 0); }
+  // Un exercice unilatéral se saisit en une seule série qui compte pour les deux côtés : tonnage doublé.
+  function tonnage(sets) { return sets.reduce(function (a, s) { return a + s.weight * s.reps * sideFactor(s.exercise); }, 0); }
   function byExercise(sets) {
     var m = new Map();
     sets.forEach(function (s) {
@@ -546,12 +618,14 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     ingest: function (raw) {
       var me = this.meId;
       this.profiles = raw.profiles || [];
-      this.exercises = (raw.exercises || []).map(function (e) { return { id: e.id, name: e.name, bw: !!e.bw }; });
+      this.exercises = (raw.exercises || []).map(function (e) {
+        return { id: e.id, name: e.name, bw: !!e.bw, uni: !!e.unilateral, group: e.muscle_group || null };
+      });
       this.server = (raw.sessions || []).map(function (r) {
         var sets = (r.sets || []).slice().sort(function (p, q) { return p.position - q.position; }).map(function (x) {
           return { id: x.id, exercise: x.exercise_id, weight: Number(x.weight), reps: x.reps };
         });
-        return { id: r.id, user: r.user_id === me ? 'a' : 'b', date: r.date, pushed: true, pushedAt: r.pushed_at, sets: sets };
+        return { id: r.id, user: r.user_id === me ? 'a' : r.user_id, date: r.date, pushed: true, pushedAt: r.pushed_at, sets: sets };
       });
       this.rebuild();
     },
@@ -566,7 +640,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     refresh: async function () {
       var out = await Promise.all([
         sb.from('profiles').select('id,name'),
-        sb.from('exercises').select('id,name,bw').order('name'),
+        sb.from('exercises').select('id,name,bw,muscle_group,unilateral').order('name'),
         sb.from('sessions').select('id,user_id,date,pushed_at,sets(id,exercise_id,position,weight,reps)').order('date')
       ]);
       for (var i = 0; i < out.length; i++) if (out[i].error) throw out[i].error;
@@ -630,19 +704,26 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
       try { await this.refresh(); } catch (e) { /* on garde l'affichage local */ }
       return true;
     },
-    addExercise: async function (name, bw) {
-      var r = await sb.from('exercises').insert({ name: name, bw: !!bw }).select('id,name,bw').single();
+    addExercise: async function (name, group, bw, uni) {
+      var r = await sb.from('exercises')
+        .insert({ name: name, muscle_group: group, bw: !!bw, unilateral: !!uni })
+        .select('id,name,bw,muscle_group,unilateral').single();
       if (r.error) throw r.error;
-      var ex = { id: r.data.id, name: r.data.name, bw: !!r.data.bw };
+      var ex = { id: r.data.id, name: r.data.name, bw: !!r.data.bw, uni: !!r.data.unilateral, group: r.data.muscle_group || null };
       this.exercises.push(ex); this.rebuild();
       return ex;
     },
-    setBw: async function (id, value) {
+    // Modifie les réglages d'un exercice (bw, uni, group). L'affichage change tout de suite ; retour en arrière si le serveur refuse.
+    updateExercise: async function (id, patch) {
       var e = this.exercises.find(function (x) { return x.id === id; });
       if (!e) return;
-      var prev = e.bw; e.bw = !!value;
-      var r = await sb.from('exercises').update({ bw: !!value }).eq('id', id);
-      if (r.error) { e.bw = prev; throw r.error; }
+      var prev = {}, db = {};
+      Object.keys(patch).forEach(function (k) {
+        prev[k] = e[k]; e[k] = patch[k];
+        db[k === 'uni' ? 'unilateral' : k === 'group' ? 'muscle_group' : k] = patch[k];
+      });
+      var r = await sb.from('exercises').update(db).eq('id', id);
+      if (r.error) { Object.keys(prev).forEach(function (k) { e[k] = prev[k]; }); throw r.error; }
     }
   };
 
@@ -655,6 +736,11 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     return !!(e && e.bw);
   }
 
+  function exById(id) { return store.data.exercises.find(function (x) { return x.id === id; }); }
+  function isUni(id) { var e = exById(id); return !!(e && e.uni); }
+  function sideFactor(id) { return isUni(id) ? 2 : 1; }
+  function groupOf(id) { var e = exById(id); return (e && e.group) || NO_GROUP; }
+
   /* ---------- Calculs ---------- */
   function exSeries(u, ex) {
     var out = [];
@@ -662,11 +748,11 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
       if (u !== state.user && !s.pushed) return; // les brouillons de l'autre restent invisibles
       var sets = s.sets.filter(function (x) { return x.exercise === ex; });
       if (!sets.length) return;
-      var bw = isBw(ex), maxW = 0, best = 0, vol = 0;
+      var bw = isBw(ex), f = sideFactor(ex), maxW = 0, best = 0, vol = 0;
       sets.forEach(function (x) {
         maxW = Math.max(maxW, x.weight);
-        if (bw) { best = Math.max(best, x.reps); vol += x.reps; }
-        else { best = Math.max(best, e1rm(x.weight, x.reps)); vol += x.weight * x.reps; }
+        if (bw) { best = Math.max(best, x.reps); vol += x.reps * f; }
+        else { best = Math.max(best, e1rm(x.weight, x.reps)); vol += x.weight * x.reps * f; }
       });
       out.push({ date: s.date, t: parse(s.date).getTime(), maxW: maxW, e1rm: best, vol: vol, sets: sets });
     });
@@ -693,7 +779,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   }
 
   /* ---------- État de l'interface ---------- */
-  var state = { user: 'a', view: 'seance', ex: null, weight: 20, reps: 8, metric: 'e1rm', period: 8 };
+  var state = { user: 'a', view: 'seance', ex: null, weight: 20, reps: 8, metric: 'e1rm', period: 8, cmp: 'all' };
   var stage = 'load', offline = false, lastRefresh = 0;
 
   function periodStart() { return state.period === 0 ? 0 : Date.now() - state.period * 7 * DAY; }
@@ -807,19 +893,50 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   }
 
   /* ---------- Rendu : en-tête et filtres ---------- */
+  function groupList() {
+    var present = {};
+    store.data.exercises.forEach(function (e) { present[e.group || NO_GROUP] = true; });
+    var out = GROUPS.filter(function (g) { return present[g]; });
+    Object.keys(present).forEach(function (g) { if (out.indexOf(g) < 0 && g !== NO_GROUP) out.push(g); });
+    if (present[NO_GROUP]) out.push(NO_GROUP);
+    return out;
+  }
+  function exercisesOf(g) {
+    return store.data.exercises.filter(function (e) { return (e.group || NO_GROUP) === g; })
+      .sort(function (p, q) { return p.name.localeCompare(q.name, 'fr'); });
+  }
+  function curGroup() { return state.ex ? groupOf(state.ex) : null; }
+  function normalizeSelection() {
+    if (!store.data.exercises.some(function (x) { return x.id === state.ex; })) {
+      var gl = groupList();
+      state.ex = gl.length ? exercisesOf(gl[0])[0].id : null;
+    }
+    if (state.cmp !== 'all' && !USERS[state.cmp]) state.cmp = 'all';
+  }
   function applyNames() {
     var me = store.profiles.find(function (p) { return p.id === store.meId; });
-    var other = store.profiles.find(function (p) { return p.id !== store.meId; });
-    USERS.a.name = me ? me.name : 'Moi';
-    USERS.b.name = other ? other.name : '—';
+    USERS = { a: { name: me ? me.name : 'Moi' } };
+    COLORS = { a: 'var(--a)' };
+    store.profiles.filter(function (p) { return p.id !== store.meId; })
+      .sort(function (p, q) { return p.name.localeCompare(q.name, 'fr'); })
+      .forEach(function (p, i) { USERS[p.id] = { name: p.name }; COLORS[p.id] = PALETTE[i % PALETTE.length]; });
   }
   function renderHeader() {
     document.body.setAttribute('data-me', state.user);
-    $('#who').innerHTML = '<span class="dot" style="--c:var(--a)"></span>' + esc(USERS.a.name) +
+    $('#who').innerHTML = '<span class="dot" style="--c:var(--a)"></span>' + esc(nameOf('a')) +
       (offline ? '<span class="off">hors ligne</span>' : '');
   }
+  function fillGroupOptions() {
+    var html = GROUPS.map(function (g) { return '<option value="' + esc(g) + '">' + esc(g) + '</option>'; }).join('');
+    $('#new-group').innerHTML = html;
+    $('#ex-group').innerHTML = html + '<option value="">' + NO_GROUP + '</option>';
+  }
   function fillSelect() {
-    $('#f-ex').innerHTML = store.data.exercises.map(function (e) {
+    var g = curGroup();
+    $('#f-group').innerHTML = groupList().map(function (x) {
+      return '<option value="' + esc(x) + '"' + (x === g ? ' selected' : '') + '>' + esc(x) + '</option>';
+    }).join('');
+    $('#f-ex').innerHTML = (g ? exercisesOf(g) : []).map(function (e) {
       return '<option value="' + esc(e.id) + '"' + (e.id === state.ex ? ' selected' : '') + '>' + esc(e.name) + '</option>';
     }).join('');
   }
@@ -832,16 +949,25 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
       b.setAttribute('aria-pressed', String(b.dataset.metric === state.metric));
     });
     $$('#f-period button').forEach(function (b) { b.setAttribute('aria-pressed', String(Number(b.dataset.period) === state.period)); });
-    $('#f-ex').value = state.ex;
+    $('#f-group').value = curGroup() || '';
+    $('#f-ex').value = state.ex || '';
   }
 
   /* ---------- Rendu : séance ---------- */
   function syncEntry() {
     $('#in-w').value = fmt(state.weight, 2);
     $('#in-r').value = String(state.reps);
-    var bw = isBw(state.ex);
+    var ex = exById(state.ex), bw = isBw(state.ex), uni = isUni(state.ex);
     $('#bw').checked = bw;
-    $('#lbl-w').innerHTML = bw ? 'Lest ajouté <span class="unit">(kg, 0 = poids du corps)</span>' : 'Poids <span class="unit">(kg)</span>';
+    $('#uni').checked = uni;
+    $('#ex-group').value = ex && ex.group ? ex.group : '';
+    var tags = [curGroup() || '—'];
+    if (bw) tags.push('poids du corps');
+    if (uni) tags.push('unilatéral');
+    $('#exset-sum').textContent = 'Réglages · ' + tags.join(' · ');
+    $('#lbl-w').innerHTML = (bw ? 'Lest ajouté' : 'Poids') + (uni ? ' par côté' : '') +
+      ' <span class="unit">(kg' + (bw ? ', 0 = poids du corps' : '') + ')</span>';
+    $('#uni-note').hidden = !uni;
   }
   function prefill() {
     var today = store.todaySession(state.user, false);
@@ -860,10 +986,18 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     var sd = store.todaySession(u);
     $('#day').textContent = (sd ? parse(sd.date) : new Date()).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
     var today = store.todaySession(u, false);
-    var counts = {};
-    if (today) today.sets.forEach(function (s) { counts[s.exercise] = (counts[s.exercise] || 0) + 1; });
+    var counts = {}, gcounts = {};
+    if (today) today.sets.forEach(function (s) {
+      counts[s.exercise] = (counts[s.exercise] || 0) + 1;
+      var g = groupOf(s.exercise); gcounts[g] = (gcounts[g] || 0) + 1;
+    });
 
-    $('#chips').innerHTML = store.data.exercises.map(function (e) {
+    var cg = curGroup();
+    $('#group-chips').innerHTML = groupList().map(function (g) {
+      return '<button type="button" class="chip" data-group="' + esc(g) + '" aria-pressed="' + (g === cg) + '">' + esc(g) +
+        (gcounts[g] ? '<span class="count">' + gcounts[g] + '</span>' : '') + '</button>';
+    }).join('');
+    $('#chips').innerHTML = (cg ? exercisesOf(cg) : []).map(function (e) {
       return '<button type="button" class="chip" data-ex="' + esc(e.id) + '" aria-pressed="' + (e.id === state.ex) + '">' + esc(e.name) +
         (counts[e.id] ? '<span class="count">' + counts[e.id] + '</span>' : '') + '</button>';
     }).join('');
@@ -883,9 +1017,9 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     }
     var html = '';
     byExercise(today.sets).forEach(function (sets, ex) {
-      var bw = isBw(ex);
-      html += '<div class="group"><div class="group-head"><h3>' + esc(exName(ex)) + '</h3><span>' +
-        (bw ? sets.reduce(function (a, s) { return a + s.reps; }, 0) + ' reps' : fmt(tonnage(sets), 0) + ' kg de tonnage') + '</span></div>';
+      var bw = isBw(ex), uni = isUni(ex);
+      html += '<div class="group"><div class="group-head"><h3>' + esc(exName(ex)) + (uni ? ' <span class="pill">Unilatéral</span>' : '') + '</h3><span>' +
+        (bw ? sets.reduce(function (a, s) { return a + s.reps; }, 0) * sideFactor(ex) + ' reps' : fmt(tonnage(sets), 0) + ' kg de tonnage') + '</span></div>';
       sets.forEach(function (s, i) {
         html += '<div class="set-row"><span class="set-no">' + (i + 1) + '</span>' +
           '<span class="set-main">' + (bw ? (s.weight ? '+' + fmt(s.weight) + ' kg' : 'PC') : fmt(s.weight) + ' kg') + ' × ' + s.reps + '</span>' +
@@ -903,20 +1037,22 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   function renderPush() {
     var host = $('#push'), s = store.todaySession(state.user, false);
     if (!s || !s.sets.length) { confirming = false; host.innerHTML = ''; return; }
-    var other = USERS[state.user === 'a' ? 'b' : 'a'].name;
+    var o = othersKeys();
+    var by = o.length === 0 ? 'les autres' : o.length === 1 ? nameOf(o[0]) : 'tout le groupe';
+    var dest = o.length === 0 ? 'aux autres' : o.length === 1 ? 'à ' + nameOf(o[0]) : 'au groupe';
     var exN = byExercise(s.sets).size, n = s.sets.length;
     var sum = exN + ' exercice' + (exN > 1 ? 's' : '') + ' · ' + n + ' série' + (n > 1 ? 's' : '');
     if (s.pushed) {
       var at = s.pushedAt ? new Date(s.pushedAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
       host.innerHTML = '<div class="push"><div class="sent">Séance envoyée' + (at ? ' à ' + at : '') + '</div>' +
-        '<p>' + esc(other) + ' peut la voir dans Comparer. Ajouter ou supprimer une série la remet en brouillon.</p></div>';
+        '<p>Elle est visible par ' + esc(by) + ' dans Comparer. Ajouter ou supprimer une série la remet en brouillon.</p></div>';
     } else if (confirming) {
       host.innerHTML = '<div class="push" role="group" aria-label="Confirmation d’envoi"><div class="sum">Envoyer la séance ?</div>' +
-        '<p>' + sum + '. Vérifie que toutes tes séries sont saisies : ' + esc(other) + ' verra la séance dans Comparer.</p>' +
+        '<p>' + sum + '. Vérifie que toutes tes séries sont saisies : elle sera visible par ' + esc(by) + ' dans Comparer.</p>' +
         '<div class="actions"><button type="button" class="btn ghost" data-push="cancel">Annuler</button>' +
         '<button type="button" class="btn" data-push="confirm">Confirmer</button></div></div>';
     } else {
-      host.innerHTML = '<div class="push"><p>Brouillon : visible uniquement par toi. Quand toutes les séries sont saisies, envoie la séance à ' + esc(other) + '.</p>' +
+      host.innerHTML = '<div class="push"><p>Brouillon : visible uniquement par toi. Quand toutes les séries sont saisies, envoie-la ' + esc(dest) + '.</p>' +
         '<button type="button" class="btn" data-push="ask">Terminer et envoyer la séance</button></div>';
     }
   }
@@ -971,28 +1107,39 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     $('#p-label').textContent = m.label + ' · ' + exName(state.ex) + ' (' + m.unit + ')';
     drawChart($('#p-chart'), $('#p-readout'), {
       area: true, unit: m.unit,
-      series: [{ name: USERS[u].name, color: 'var(--' + u + ')', pts: pts.map(function (p) { return { t: p.t, v: p[m.key] }; }) }]
+      series: [{ name: nameOf(u), color: colorOf(u), pts: pts.map(function (p) { return { t: p.t, v: p[m.key] }; }) }]
     });
   }
 
   /* ---------- Rendu : comparaison ---------- */
   function renderComparer() {
     var m = metricsFor(state.ex)[state.metric], start = periodStart(), now = Date.now(), bwEx = isBw(state.ex);
+    var others = othersKeys();
+    $('#c-pick').hidden = others.length < 2;
+    if (others.length >= 2) {
+      var opts = [{ k: 'all', n: 'Tout le groupe' }].concat(others.map(function (k) { return { k: k, n: nameOf(k) }; }));
+      $('#c-who').innerHTML = opts.map(function (o) {
+        return '<button type="button" class="chip" data-cmp="' + esc(o.k) + '" aria-pressed="' + (o.k === state.cmp) + '">' +
+          (o.k !== 'all' ? '<span class="dot" style="--c:' + colorOf(o.k) + '"></span>' : '') + esc(o.n) + '</button>';
+      }).join('');
+    }
+    var keys = ['a'].concat(state.cmp !== 'all' && USERS[state.cmp] ? [state.cmp] : others);
     $('#c-label').textContent = m.label + ' · ' + exName(state.ex) + ' (' + m.unit + ')';
-    var seriesAll = { a: exSeries('a', state.ex), b: exSeries('b', state.ex) };
+    var seriesAll = {};
+    keys.forEach(function (k) { seriesAll[k] = exSeries(k, state.ex); });
     drawChart($('#c-chart'), $('#c-readout'), {
       area: false, unit: m.unit,
-      series: ['a', 'b'].map(function (u) {
+      series: keys.map(function (k) {
         return {
-          name: USERS[u].name, color: 'var(--' + u + ')',
-          pts: seriesAll[u].filter(function (p) { return p.t >= start; }).map(function (p) { return { t: p.t, v: p[m.key] }; })
+          name: nameOf(k), color: colorOf(k),
+          pts: seriesAll[k].filter(function (p) { return p.t >= start; }).map(function (p) { return { t: p.t, v: p[m.key] }; })
         };
       })
     });
 
     var weeks = state.period;
     if (!weeks) {
-      var firsts = ['a', 'b'].map(function (u) { return seriesAll[u].length ? seriesAll[u][0].t : now; });
+      var firsts = keys.map(function (k) { return seriesAll[k].length ? seriesAll[k][0].t : now; });
       weeks = Math.max(1, Math.ceil((now - Math.min.apply(null, firsts)) / (7 * DAY)));
     }
     function stats(u) {
@@ -1006,7 +1153,8 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
         prog: pts.length > 1 && pts[0].e1rm > 0 ? (pts[pts.length - 1].e1rm / pts[0].e1rm - 1) * 100 : null
       };
     }
-    var st = { a: stats('a'), b: stats('b') };
+    var st = {};
+    keys.forEach(function (k) { st[k] = stats(k); });
     var rows = bwEx ? [
       { k: 'e1rm', label: 'Reps max sur une série', unit: 'reps', d: 0, diff: 'reps' },
       { k: 'maxW', label: 'Lest max', unit: 'kg', d: 1, diff: 'kg' },
@@ -1021,21 +1169,28 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
       { k: 'prog', label: 'Progression du 1RM ' + periodLabel(), unit: '%', d: 1, diff: null, signed: true }
     ];
     $('#c-metrics').innerHTML = rows.map(function (r) {
-      var va = st.a ? st.a[r.k] : null, vb = st.b ? st.b[r.k] : null;
-      var max = Math.max(va == null ? 0 : Math.abs(va), vb == null ? 0 : Math.abs(vb));
+      var vals = keys.map(function (k) { return st[k] ? st[k][r.k] : null; });
+      var max = Math.max.apply(null, vals.map(function (v) { return v == null ? 0 : Math.abs(v); }).concat([0]));
       var chip = '';
-      if (r.diff && va > 0 && vb > 0) {
-        var hi = Math.max(va, vb), lo = Math.min(va, vb), lead = va >= vb ? 'a' : 'b', p = (hi / lo - 1) * 100;
-        chip = p < 1 ? '<span class="lead eq">Égalité</span>'
-          : '<span class="lead" style="--c:var(--' + lead + ')">' + esc(USERS[lead].name) + ' +' + (r.diff === '%' ? Math.round(p) + ' %' : fmt(hi - lo, 1) + ' ' + r.diff) + '</span>';
+      if (r.diff) {
+        var ranked = keys.map(function (k, i) { return { k: k, v: vals[i] }; })
+          .filter(function (x) { return x.v != null && x.v > 0; })
+          .sort(function (p, q) { return q.v - p.v; });
+        if (ranked.length >= 2) {
+          var hi = ranked[0].v, lo = ranked[1].v, p = (hi / lo - 1) * 100;
+          chip = p < 1 ? '<span class="lead eq">Égalité</span>'
+            : '<span class="lead" style="--c:' + colorOf(ranked[0].k) + '">' + esc(nameOf(ranked[0].k)) + ' +' +
+              (r.diff === '%' ? Math.round(p) + ' %' : fmt(hi - lo, 1) + ' ' + r.diff) + '</span>';
+        }
       }
-      function bar(u, v) {
+      function bar(k, v) {
         var w = v == null || max === 0 ? 0 : Math.abs(v) / max * 100;
         var txt = v == null ? '—' : (r.signed ? sgn(v, r.d) : fmt(v, r.d)) + (r.unit ? '<small>' + r.unit + '</small>' : '');
-        return '<div class="bar-row" style="--c:var(--' + u + ')"><span class="who">' + esc(USERS[u].name) + '</span>' +
+        return '<div class="bar-row" style="--c:' + colorOf(k) + '"><span class="who">' + esc(nameOf(k)) + '</span>' +
           '<span class="track"><span class="fill" style="width:' + w.toFixed(1) + '%"></span></span><span class="val">' + txt + '</span></div>';
       }
-      return '<div class="metric"><div class="metric-head"><h3>' + r.label + '</h3>' + chip + '</div>' + bar('a', va) + bar('b', vb) + '</div>';
+      return '<div class="metric"><div class="metric-head"><h3>' + r.label + '</h3>' + chip + '</div>' +
+        keys.map(function (k, i) { return bar(k, vals[i]); }).join('') + '</div>';
     }).join('');
   }
 
@@ -1080,6 +1235,11 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     resizeTimer = setTimeout(function () { if (stage === 'app' && (state.view === 'progres' || state.view === 'comparer')) render(); }, 120);
   });
 
+  $('#f-group').addEventListener('change', function (e) {
+    var list = exercisesOf(e.target.value);
+    if (list.length) state.ex = list[0].id;
+    fillSelect(); prefill(); syncFilters(); render();
+  });
   $('#f-ex').addEventListener('change', function (e) { state.ex = e.target.value; prefill(); syncFilters(); render(); });
   $('#f-metric').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-metric]');
@@ -1090,36 +1250,58 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     if (b) { state.period = Number(b.dataset.period); syncFilters(); render(); }
   });
 
+  $('#group-chips').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-group]');
+    if (!b) return;
+    var list = exercisesOf(b.dataset.group);
+    if (!list.length) return;
+    state.ex = list[0].id; fillSelect(); prefill(); renderSeance();
+  });
   $('#chips').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-ex]');
     if (!b) return;
     state.ex = b.dataset.ex; fillSelect(); prefill(); renderSeance();
   });
+  $('#c-who').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-cmp]');
+    if (b) { state.cmp = b.dataset.cmp; renderComparer(); }
+  });
+  $('#newex').addEventListener('toggle', function () {
+    if (this.open && GROUPS.indexOf(curGroup()) >= 0) $('#new-group').value = curGroup();
+  });
   $('#add-ex').addEventListener('submit', async function (e) {
     e.preventDefault();
     var inp = $('#new-ex'), name = inp.value.trim().replace(/\s+/g, ' ');
-    if (!name) return;
+    if (!name) { toast('Donne un nom à l’exercice.'); return; }
+    var group = $('#new-group').value;
+    if (!group) { toast('Choisis le groupe musculaire travaillé.'); return; }
     if (store.data.exercises.some(function (x) { return x.name.toLowerCase() === name.toLowerCase(); })) {
       toast('Cet exercice existe déjà.'); return;
     }
-    var btn = $('#add-ex button'), bwOn = $('#new-bw').checked;
+    var btn = $('#add-ex button[type="submit"]');
     btn.disabled = true;
     try {
-      var ex = await store.addExercise(name, bwOn);
-      inp.value = ''; $('#new-bw').checked = false; state.ex = ex.id; fillSelect(); prefill(); renderSeance();
+      var ex = await store.addExercise(name, group, $('#new-bw').checked, $('#new-uni').checked);
+      inp.value = ''; $('#new-bw').checked = false; $('#new-uni').checked = false; $('#newex').open = false;
+      state.ex = ex.id; fillSelect(); prefill(); renderSeance();
       toast('Exercice ajouté : ' + name);
     } catch (err) {
       toast(/duplicate|unique/i.test(errText(err)) ? 'Cet exercice existe déjà.' : 'Ajout impossible : ' + errText(err));
     } finally { btn.disabled = false; }
   });
 
-  $('#bw').addEventListener('change', async function (e) {
-    var on = e.target.checked;
-    var p = store.setBw(state.ex, on);
-    state.weight = on ? 0 : 20;
-    syncEntry(); renderSeance();
-    try { await p; } catch (err) { toast('Modification impossible : ' + errText(err)); syncEntry(); renderSeance(); }
-  });
+  // Réglages de l'exercice courant (groupe, poids du corps, unilatéral).
+  async function patchExercise(patch) {
+    var p = store.updateExercise(state.ex, patch);
+    if ('bw' in patch) state.weight = patch.bw ? 0 : 20;
+    fillSelect(); syncEntry(); renderSeance();
+    try { await p; } catch (err) { toast('Modification impossible : ' + errText(err)); fillSelect(); syncEntry(); renderSeance(); }
+  }
+  $('#bw').addEventListener('change', function (e) { patchExercise({ bw: e.target.checked }); });
+  $('#uni').addEventListener('change', function (e) { patchExercise({ uni: e.target.checked }); });
+  $('#ex-group').addEventListener('change', function (e) { patchExercise({ group: e.target.value || null }); });
+  fillGroupOptions();
+
   $('#entry').addEventListener('click', function (e) {
     var b = e.target.closest('button');
     if (!b) return;
@@ -1167,7 +1349,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
       try {
         await store.pushSession();
         confirming = false;
-        toast('Séance envoyée à ' + USERS.b.name, true);
+        toast('Séance envoyée' + (othersKeys().length === 1 ? ' à ' + nameOf(othersKeys()[0]) : ''), true);
       } catch (err) {
         toast('Envoi impossible : ' + errText(err) + '. Ta séance reste en brouillon.');
       }
@@ -1196,7 +1378,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
   }
   function enterApp() {
     applyNames(); renderHeader();
-    if (!store.exercises.some(function (x) { return x.id === state.ex; })) state.ex = store.exercises.length ? store.exercises[0].id : null;
+    normalizeSelection();
     fillSelect(); prefill(); setStage('app'); showView();
   }
   function isAuthError(err) { return !!err && (err.status === 401 || /jwt|not authenticated/i.test(errText(err))); }
@@ -1226,7 +1408,7 @@ main { padding-block: 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
     if (stage !== 'app') return;
     try {
       await store.refresh(); offline = false; lastRefresh = Date.now();
-      applyNames(); renderHeader(); fillSelect(); syncFilters(); render();
+      applyNames(); normalizeSelection(); renderHeader(); fillSelect(); syncFilters(); render();
       if (manual) toast('À jour', true);
     } catch (err) {
       if (isAuthError(err)) { await logout(); return; }

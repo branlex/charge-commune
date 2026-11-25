@@ -1,7 +1,7 @@
 /* Service worker de Charge commune.
    Rôle : garder la page et ses ressources en cache pour qu'elle s'ouvre sans réseau.
    Les appels à Supabase ne passent jamais par le cache : les données sont toujours celles du serveur. */
-const CACHE = 'charge-commune-v2';
+const CACHE = 'charge-commune-v4';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', (event) => {
